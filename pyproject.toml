@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "gendazpack"
+version = "0.1.0"
+description = "DAZ Content Package Generator"
+license = "MIT"
+authors = ["Omni Flux <omniflux@omniflux.com>"]
+readme = "README.rst"
+repository = "https://github.com/Omniflux/gendazpack"
+classifiers = [
+	"Development Status :: 5 - Production/Stable",
+	"Operating System :: OS Independent",
+	"Programming Language :: Python :: 3 :: Only",
+	"Topic :: Utilities"
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+lxml = "^4.9.4"
+beautifulsoup4 = "^4.12.3"
+Pillow = "^10.2.0"
+weasyprint = "^60.1"
+
+[tool.poetry.group.dev.dependencies]
+types-lxml = "^2023.10.21"
+types-pillow = "^10.2.0.20240206"
+types-beautifulsoup4 = "^4.12.0.20240106"
+
+[tool.poetry.scripts]
+gendazpack = {reference = "gendazpack.__main__:_main", type = "console"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
