@@ -31,11 +31,11 @@ def _url(url_str: str) -> ParseResult:
 
 def _prefix(store: str) -> str:
 	if store in (reserved := ('IM', 'DZ', 'DAZ', 'DAZ3D', 'TAFI')):
-		raise ArgumentTypeError(f'Invalid store: {reserved} are reserved')	
+		raise ArgumentTypeError(f'Invalid prefix: {reserved} are reserved')	
 
 	pattern = r'[A-Z][0-9A-Z]{0,6}'
 	if not re.compile(pattern).fullmatch(store):
-		raise ArgumentTypeError(f'Invalid store: Must match regex: {pattern}')
+		raise ArgumentTypeError(f'Invalid prefix: Must match regex: {pattern}')
 
 	return store
 
