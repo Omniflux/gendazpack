@@ -77,7 +77,7 @@ class PackageGenerator(PackageData):
 			etree.SubElement(manifest, 'File', TARGET='Content', ACTION='Install', VALUE=f'{_CONTENT_DIR}/{_SUPPORT_DIR}/{self.metadata_filename_base}{image_extension}')
 
 		etree.indent(manifest, space=' ')
-		return etree.tostring(manifest, pretty_print=True)
+		return etree.tostring(manifest, encoding='UTF-8', pretty_print=True)
 
 	@property
 	def supplement_file(self) -> bytes:
@@ -93,7 +93,7 @@ class PackageGenerator(PackageData):
 		etree.SubElement(supplement, 'ProductTags', VALUE=','.join(self.tags))
 
 		etree.indent(supplement, space=' ')
-		return etree.tostring(supplement, pretty_print=True)
+		return etree.tostring(supplement, encoding='UTF-8', pretty_print=True)
 
 	@property
 	def metadata_file(self) -> bytes:
