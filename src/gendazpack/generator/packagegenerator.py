@@ -1,6 +1,7 @@
 import gzip
 import re
 import sys
+import zipfile
 
 from dataclasses import dataclass, fields, KW_ONLY
 from http.client import HTTPResponse
@@ -8,7 +9,6 @@ from mimetypes import guess_extension
 from pathlib import Path
 from urllib.parse import ParseResult
 from uuid import uuid4
-from zipfile import ZipFile, ZIP_DEFLATED
 from lxml import etree
 
 
@@ -18,6 +18,17 @@ from ..scrapers import scrape
 
 _CONTENT_DIR = 'Content'
 _SUPPORT_DIR = 'Runtime/Support'
+
+# DIM does not support Unicode filenames in ZIP files due to using the minizip 1.01 library.
+# Examining offical DAZ packages reveals Windows-1252 encoding is used. Packages with
+# filenames using non ASCII characters may not extract correctly on OS X.
+Ascii_ZipInfo = zipfile.ZipInfo
+class Windows1252_ZipInfo(zipfile.ZipInfo):
+    def _encodeFilenameFlags(self):
+        try:
+            return self.filename.encode('Windows-1252'), self.flag_bits
+        except UnicodeEncodeError:
+            raise SystemExit(f'DIM does not support Unicode filenames: {self.filename}')
 
 @dataclass
 class PackageGenerator(PackageData):
@@ -275,7 +286,10 @@ if( App.version >= 67109158 ) //4.0.0.294
 
 		self._assert_required_vars()
 
-		with ZipFile(self.zip_filename, 'x', ZIP_DEFLATED) as zip_file:
+		# Use Windows-1252 encoding for filenames
+		zipfile.ZipInfo = Windows1252_ZipInfo
+
+		with zipfile.ZipFile(self.zip_filename, 'x', zipfile.ZIP_DEFLATED) as zip_file:
 			# DIM Package
 			zip_file.writestr(_MANIFEST_FILE, self.manifest_file)
 			zip_file.writestr(_SUPPLEMENT_FILE, self.supplement_file)
@@ -313,6 +327,9 @@ if( App.version >= 67109158 ) //4.0.0.294
 								zip_file.writestr((_CONTENT_DIR / relative_file_path).as_posix(), gzip.compress(f.read()))
 				else:
 					zip_file.write(file_path, _CONTENT_DIR / relative_file_path)
+
+		# Revert filename encoding
+		zipfile.ZipInfo = Ascii_ZipInfo
 
 	def make_package(self) -> None:
 		try:
