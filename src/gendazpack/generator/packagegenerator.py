@@ -105,7 +105,7 @@ class PackageGenerator(PackageData):
 		supplement = etree.Element('ProductSupplement', VERSION='0.1')
 		etree.SubElement(supplement, 'ProductName', VALUE=self.name)
 		etree.SubElement(supplement, 'InstallTypes', VALUE='Content')
-		etree.SubElement(supplement, 'ProductTags', VALUE=','.join(self.tags))
+		etree.SubElement(supplement, 'ProductTags', VALUE=','.join(sorted(self.tags)))
 
 		etree.indent(supplement, space=' ')
 		return etree.tostring(supplement, encoding='UTF-8', pretty_print=True)
@@ -219,6 +219,22 @@ if( App.version >= 67109158 ) //4.0.0.294
 }
 '''
 
+	@property
+	def guess_tags(self) -> set[str]:
+		_DAZ_EXTENSIONS = ('.duf', '.dsf', '.djl', '.dsa', '.dsb', '.dse', '.ds', '.dsj', '.daz', '.dhdm')
+		_POSER_EXTENSIONS = ('.pz3', '.pzz', '.cr2', '.crz', '.pz2', '.p2z', '.fc2', '.fcz', '.hr2', '.hrz', '.hd2', '.hdz', '.pp2', '.ppz', '.lt2', '.ltz', '.cm2', '.cmz', '.mc6', '.mcz', '.mt5', '.mz5', '.pmd')
+
+		tags: set[str] = set()
+
+		if any(x for _, x in self._files() if x.suffix.lower() in _DAZ_EXTENSIONS and not x.parent.as_posix().lower() == 'runtime/support'):
+			tags.add('DAZStudio4_5')
+
+		if any(x for _, x in self._files() if x.suffix.lower() in _POSER_EXTENSIONS and x.as_posix().lower().startswith('runtime/')):
+			tags.add('DAZStudio4_5')
+			tags.add('PoserLegacy')
+
+		return tags or set(('General',))
+
 	def __post_init__(self):
 		self._merge_package_data(load_metadata(self.content_location))
 
@@ -234,10 +250,8 @@ if( App.version >= 67109158 ) //4.0.0.294
 		if not self.store:
 			self.store = 'LOCAL USER'
 
-		if self.tags:
-			self.tags.sort()
-		else:
-			self.tags.append('DAZStudio4_5')
+		if not self.tags:
+			self.tags = self.guess_tags
 
 	def _merge_package_data(self, package_data: PackageData) -> None:
 		for field in fields(PackageData):

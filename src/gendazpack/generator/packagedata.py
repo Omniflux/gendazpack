@@ -27,7 +27,7 @@ class PackageData:
     sku: int | None = None
     store: str | None = None
     name: str | None = None
-    tags: list[str] = field(default_factory=list)
+    tags: set[str] = field(default_factory=set)
     artists: list[str] = field(default_factory=list)
     description: str | None = None
     image: Path | HTTPResponse | None = None
