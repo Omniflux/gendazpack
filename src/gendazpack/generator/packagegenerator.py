@@ -333,8 +333,12 @@ if( App.version >= 67109158 ) //4.0.0.294
 				print('Adding Content')
 
 			for file_path, relative_file_path, in self._files():
-				if not encoding_issue and file_path.as_posix().encode() != file_path.as_posix().encode('Windows-1252'):
-					encoding_issue = True
+				try:
+					if not encoding_issue and file_path.as_posix().encode() != file_path.as_posix().encode('Windows-1252'):
+						encoding_issue = True
+				except UnicodeEncodeError as e:
+					e.add_note(file_path.as_posix())
+					raise
 
 				# Compress DAZ compressable files before adding to archive
 				if file_path.suffix.lower() in _DAZ_COMPRESSABLE_EXTENSIONS and file_path.stat().st_size:
