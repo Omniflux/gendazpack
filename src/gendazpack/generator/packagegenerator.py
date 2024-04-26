@@ -27,8 +27,8 @@ class Windows1252_ZipInfo(zipfile.ZipInfo):
     def _encodeFilenameFlags(self):
         try:
             return self.filename.encode('Windows-1252'), self.flag_bits
-        except UnicodeEncodeError:
-            raise SystemExit(f'DIM does not support Unicode filenames: {self.filename}')
+        except UnicodeEncodeError as e:
+            raise SystemExit(f'DIM does not support Unicode filenames: {self.filename}') from e
 
 _ENCODING_WARNING = ('WARNING: Non ASCII characters detected in file paths.\n'
 					 'Windows-1252 encoding used for compatibility with DIM.\n'
@@ -333,12 +333,8 @@ if( App.version >= 67109158 ) //4.0.0.294
 				print('Adding Content')
 
 			for file_path, relative_file_path, in self._files():
-				try:
-					if not encoding_issue and file_path.as_posix().encode() != file_path.as_posix().encode('Windows-1252'):
-						encoding_issue = True
-				except UnicodeEncodeError as e:
-					e.add_note(file_path.as_posix())
-					raise
+				if not encoding_issue and file_path.as_posix().encode() != file_path.as_posix().encode('Windows-1252', 'replace'):
+					encoding_issue = True
 
 				# Compress DAZ compressable files before adding to archive
 				if file_path.suffix.lower() in _DAZ_COMPRESSABLE_EXTENSIONS and file_path.stat().st_size:
