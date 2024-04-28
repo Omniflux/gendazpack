@@ -19,6 +19,19 @@ from ..scrapers import scrape
 _CONTENT_DIR = 'Content'
 _SUPPORT_DIR = 'Runtime/Support'
 
+_USER_FACING_DAZ_EXTENSIONS = ('.daz', '.djl', '.duf', '.ds', '.dsa', '.dsb', '.dse')
+_OTHER_DAZ_EXTENSIONS = ('.dhdm', '.dsd', '.dsf', '.dsj', '.dso', '.dsv')
+_COMPRESSABLE_DAZ_EXTENSIONS = ('.dsf', '.duf')
+_NON_USER_FACING_DIRECTORIES = ('data', "readme's", 'runtime', 'uninstallers')
+
+_USER_FACING_POSER_EXTENSIONS = ('.pz3', '.pzz', '.cr2', '.crz', '.pz2', '.p2z', '.fc2', '.fcz', '.hr2', '.hrz', '.hd2', '.hdz', '.pp2', '.ppz', '.lt2', '.ltz', '.cm2', '.cmz', '.mc6', '.mcz', '.mt5', '.mz5')
+_OTHER_POSER_EXTENSIONS = ('.pmd',)
+_POSER_USER_FACING_DIRECTORIES = ('camera', 'character', 'face', 'hair', 'hand', 'light', 'materials', 'pose', 'props', 'scene')
+
+_EXCLUDE_FILES = (x.lower() for x in ['.DS_Store', '._.DS_Store', 'InstallManagerFileRegister.json', 'Desktop.ini', 'Thumbs.db'])
+_EXCLUDE_SUFFIXES = ('.xmp',)
+
+
 # DIM does not support Unicode filenames in ZIP files due to using the minizip 1.01 library.
 # Examining offical DAZ packages reveals Windows-1252 encoding is used. Packages with
 # filenames using non ASCII characters may not extract correctly on OS X.
@@ -112,11 +125,6 @@ class PackageGenerator(PackageData):
 
 	@property
 	def metadata_file(self) -> bytes:
-		_USER_FACING_DAZ_EXTENSIONS = ['.duf', '.ds', '.dsa', '.dsb', '.dse', '.daz']
-		_USER_FACING_POSER_EXTENSIONS = ['.pz3', '.pzz', '.cr2', '.crz', '.pz2', '.p2z', '.fc2', '.fcz', '.hr2', '.hrz', '.hd2', '.hdz', '.pp2', '.ppz', '.lt2', '.ltz', '.cm2', '.cmz', '.mc6', '.mcz']
-		_NON_USER_FACING_DIRECTORIES = ['data', "readme's", 'runtime', 'uninstallers']
-		_POSER_USER_FACING_DIRECTORIES = ['camera', 'character', 'face', 'hair', 'hand', 'light', 'materials', 'pose', 'props', 'scene']
-
 		if self.verbose:
 			print('Generating Metadata')
 
@@ -221,15 +229,12 @@ if( App.version >= 67109158 ) //4.0.0.294
 
 	@property
 	def guess_tags(self) -> set[str]:
-		_DAZ_EXTENSIONS = ('.duf', '.dsf', '.djl', '.dsa', '.dsb', '.dse', '.ds', '.dsj', '.daz', '.dhdm')
-		_POSER_EXTENSIONS = ('.pz3', '.pzz', '.cr2', '.crz', '.pz2', '.p2z', '.fc2', '.fcz', '.hr2', '.hrz', '.hd2', '.hdz', '.pp2', '.ppz', '.lt2', '.ltz', '.cm2', '.cmz', '.mc6', '.mcz', '.mt5', '.mz5', '.pmd')
-
 		tags: set[str] = set()
 
-		if any(x for _, x in self._files() if x.suffix.lower() in _DAZ_EXTENSIONS and not x.parent.as_posix().lower() == 'runtime/support'):
+		if any(x for _, x in self._files() if x.suffix.lower() in _USER_FACING_DAZ_EXTENSIONS + _OTHER_DAZ_EXTENSIONS and not x.parent.as_posix().lower() == 'runtime/support'):
 			tags.add('DAZStudio4_5')
 
-		if any(x for _, x in self._files() if x.suffix.lower() in _POSER_EXTENSIONS and x.as_posix().lower().startswith('runtime/')):
+		if any(x for _, x in self._files() if x.suffix.lower() in _USER_FACING_POSER_EXTENSIONS + _OTHER_POSER_EXTENSIONS and x.as_posix().lower().startswith('runtime/')):
 			tags.add('DAZStudio4_5')
 			tags.add('PoserLegacy')
 
@@ -281,9 +286,6 @@ if( App.version >= 67109158 ) //4.0.0.294
 			raise ExceptionGroup('Required variables missing', exceptions)
 
 	def _files(self):
-		_EXCLUDE_FILES = [x.lower() for x in ['.DS_Store', '._.DS_Store', 'InstallManagerFileRegister.json', 'Desktop.ini', 'Thumbs.db']]
-		_EXCLUDE_SUFFIXES = ['.xmp']	# lowercase
-
 		for root, _, files in self.content_location.walk():
 			if not (rel_root := root.relative_to(self.content_location)).as_posix() == _SUPPORT_DIR:
 				for file in files:
@@ -297,7 +299,6 @@ if( App.version >= 67109158 ) //4.0.0.294
 		_MANIFEST_FILE = 'Manifest.dsx'
 		_SUPPLEMENT_FILE = 'Supplement.dsx'
 		_README_FILE = 'ReadMe.pdf'
-		_DAZ_COMPRESSABLE_EXTENSIONS = ['.dsf', '.duf']	# lowercase
 
 		if self.verbose:
 			print('Generating ZIP file')
@@ -337,7 +338,7 @@ if( App.version >= 67109158 ) //4.0.0.294
 					encoding_issue = True
 
 				# Compress DAZ compressable files before adding to archive
-				if file_path.suffix.lower() in _DAZ_COMPRESSABLE_EXTENSIONS and file_path.stat().st_size:
+				if file_path.suffix.lower() in _COMPRESSABLE_DAZ_EXTENSIONS and file_path.stat().st_size:
 					with gzip.open(file_path) as f:
 						try:
 							f.read(1)
