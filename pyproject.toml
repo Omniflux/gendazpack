@@ -15,15 +15,14 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.11"
-lxml = "^4.9.4"
+lxml = "^5.2.1"
 beautifulsoup4 = "^4.12.3"
-Pillow = "^10.2.0"
-weasyprint = "^60.1"
+Pillow = "^10.3.0"
+weasyprint = "^61.2"
 
 [tool.poetry.group.dev.dependencies]
-types-lxml = "^2023.10.21"
-types-pillow = "^10.2.0.20240206"
-types-beautifulsoup4 = "^4.12.0.20240106"
+types-lxml = "^2024.4.14"
+types-beautifulsoup4 = "^4.12.0.20240229"
 
 [tool.poetry.scripts]
 gendazpack = {reference = "gendazpack.__main__:_main", type = "console"}

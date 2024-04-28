@@ -6,7 +6,7 @@ gendazpack
 Supported Python versions
 -------------------------
 
-- Python 3.11
+- Python 3.11+
 
 Usage
 -----
