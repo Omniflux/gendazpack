@@ -26,7 +26,7 @@ _NON_USER_FACING_DIRECTORIES = ('data', "readme's", 'runtime', 'uninstallers')
 
 _USER_FACING_POSER_EXTENSIONS = ('.pz3', '.pzz', '.cr2', '.crz', '.pz2', '.p2z', '.fc2', '.fcz', '.hr2', '.hrz', '.hd2', '.hdz', '.pp2', '.ppz', '.lt2', '.ltz', '.cm2', '.cmz', '.mc6', '.mcz', '.mt5', '.mz5')
 _OTHER_POSER_EXTENSIONS = ('.pmd',)
-_POSER_USER_FACING_DIRECTORIES = ('camera', 'character', 'face', 'hair', 'hand', 'light', 'materials', 'pose', 'props', 'scene')
+_POSER_USER_FACING_DIRECTORIES = ('camera', 'character', 'collections', 'face', 'hair', 'hand', 'light', 'materials', 'pose', 'props', 'scene')
 
 _EXCLUDE_FILES = (x.lower() for x in ['.DS_Store', '._.DS_Store', 'InstallManagerFileRegister.json', 'Desktop.ini', 'Thumbs.db'])
 _EXCLUDE_SUFFIXES = ('.xmp',)
