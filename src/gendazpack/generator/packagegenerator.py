@@ -7,10 +7,11 @@ from dataclasses import dataclass, fields, KW_ONLY
 from http.client import HTTPResponse
 from mimetypes import guess_extension
 from pathlib import Path
+from struct import pack
 from urllib.parse import ParseResult
 from uuid import uuid4
-from lxml import etree
 
+from lxml import etree
 
 from .loadmetadata import load_metadata
 from .packagedata import PackageData
@@ -33,19 +34,24 @@ _EXCLUDE_SUFFIXES = ('.xmp',)
 
 
 # DIM does not support Unicode filenames in ZIP files due to using the minizip 1.01 library.
-# Examining offical DAZ packages reveals Windows-1252 encoding is used. Packages with
+# Examining official DAZ packages reveals Windows-1252 encoding is used. Packages with
 # filenames using non ASCII characters may not extract correctly on OS X.
 Ascii_ZipInfo = zipfile.ZipInfo
 class Windows1252_ZipInfo(zipfile.ZipInfo):
-    def _encodeFilenameFlags(self):
-        try:
-            return self.filename.encode('Windows-1252'), self.flag_bits
-        except UnicodeEncodeError as e:
-            raise SystemExit(f'DIM does not support Unicode filenames: {self.filename}') from e
+	def _encodeFilenameFlags(self):
+		try:
+			return self.filename.encode('Windows-1252'), self.flag_bits
+		except UnicodeEncodeError as e:
+			raise SystemExit(f'DIM does not support Unicode filenames: {self.filename}') from e
 
-_ENCODING_WARNING = ('WARNING: Non ASCII characters detected in file paths.\n'
-					 'Windows-1252 encoding used for compatibility with DIM.\n'
-					 'Archive may not extract correctly with normal ZIP tools.')
+	def __init__(self, filename: str = "NoName", date_time: tuple[int, int, int, int, int, int] = (1980,1,1,0,0,0)):
+		super().__init__(filename, date_time)
+
+		if self.filename.encode() != self.filename.encode('Windows-1252', 'replace'):
+			UNICODE_PATH_EXTRA_FIELD_ID = 0x7075
+			encoded_filename = self.filename.encode()
+			crc = zipfile.crc32(self._encodeFilenameFlags()[0])	# pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType, reportUnknownVariableType]
+			self.extra += pack(f'<HHBL{len(encoded_filename)}s', UNICODE_PATH_EXTRA_FIELD_ID, len(encoded_filename) + 5, 1, crc, encoded_filename)
 
 @dataclass
 class PackageGenerator(PackageData):
@@ -307,7 +313,6 @@ if( App.version >= 67109158 ) //4.0.0.294
 
 		# Use Windows-1252 encoding for filenames
 		zipfile.ZipInfo = Windows1252_ZipInfo
-		encoding_issue = self.metadata_filename_base.encode() != self.metadata_filename_base.encode('Windows-1252')
 
 		with zipfile.ZipFile(self.zip_filename, 'x', zipfile.ZIP_DEFLATED) as zip_file:
 			# DIM Package
@@ -334,9 +339,6 @@ if( App.version >= 67109158 ) //4.0.0.294
 				print('Adding Content')
 
 			for file_path, relative_file_path, in self._files():
-				if not encoding_issue and file_path.as_posix().encode() != file_path.as_posix().encode('Windows-1252', 'replace'):
-					encoding_issue = True
-
 				# Compress DAZ compressable files before adding to archive
 				if file_path.suffix.lower() in _COMPRESSABLE_DAZ_EXTENSIONS and file_path.stat().st_size:
 					with gzip.open(file_path) as f:
@@ -347,15 +349,12 @@ if( App.version >= 67109158 ) //4.0.0.294
 							if self.verbose:
 								print (f'Compressing: {relative_file_path}')
 							with open(file_path, 'rb') as f:
-								zip_file.writestr((_CONTENT_DIR / relative_file_path).as_posix(), gzip.compress(f.read()))
+								zip_file.writestr(zipfile.ZipInfo.from_file(file_path, (_CONTENT_DIR / relative_file_path).as_posix()), gzip.compress(f.read()))
 				else:
 					zip_file.write(file_path, _CONTENT_DIR / relative_file_path)
 
 		# Revert filename encoding
 		zipfile.ZipInfo = Ascii_ZipInfo
-
-		if encoding_issue:
-			print(_ENCODING_WARNING)
 
 	def make_package(self) -> None:
 		try:
