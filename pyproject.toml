@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gendazpack"
-version = "0.1.1"
+version = "0.1.2"
 description = "DAZ Content Package Generator"
 license = "MIT"
 authors = ["Omni Flux <omniflux@omniflux.com>"]
