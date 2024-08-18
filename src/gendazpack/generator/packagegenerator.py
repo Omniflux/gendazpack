@@ -122,7 +122,7 @@ class PackageGenerator(PackageData):
 			print('Generating Supplement')
 
 		if not self.name:
-			raise RuntimeError(f'Missing Product Name')
+			raise RuntimeError('Missing Product Name')
 
 		supplement = etree.Element('ProductSupplement', VERSION='0.1')
 		etree.SubElement(supplement, 'ProductName', VALUE=self.name)
@@ -138,7 +138,7 @@ class PackageGenerator(PackageData):
 			print('Generating Metadata')
 
 		if not self.name:
-			raise RuntimeError(f'Missing Product Name')
+			raise RuntimeError('Missing Product Name')
 
 		metadata = etree.Element('ContentDBInstall', VERSION='1.0')
 		product = etree.SubElement(etree.SubElement(metadata, 'Products'), 'Product', VALUE=self.name)
@@ -166,7 +166,7 @@ class PackageGenerator(PackageData):
 		for _, relative_file_path, in self._files():
 			suffix = relative_file_path.suffix.lower()
 			path_parts = [p.lower() for p in relative_file_path.parts]
-			if ((suffix in _USER_FACING_DAZ_EXTENSIONS and not path_parts[0] in _NON_USER_FACING_DIRECTORIES) or
+			if ((suffix in _USER_FACING_DAZ_EXTENSIONS and path_parts[0] not in _NON_USER_FACING_DIRECTORIES) or
 				(suffix in _USER_FACING_DAZ_EXTENSIONS + _USER_FACING_POSER_EXTENSIONS and len(path_parts) > 3 and
 	 			path_parts[0] == 'runtime' and path_parts[1] == 'libraries' and path_parts[2] in _POSER_USER_FACING_DIRECTORIES)):
 
@@ -299,7 +299,7 @@ if( App.version >= 67109158 ) //4.0.0.294
 			if not (rel_root := root.relative_to(self.content_location)).as_posix() == _SUPPORT_DIR:
 				for file in files:
 					path = Path(file)
-					if not '__MACOSX' in path.parts and not path.name.lower() in _EXCLUDE_FILES and not path.suffix.lower() in _EXCLUDE_SUFFIXES:
+					if '__MACOSX' not in path.parts and path.name.lower() not in _EXCLUDE_FILES and path.suffix.lower() not in _EXCLUDE_SUFFIXES:
 						file_path = root / file
 						if not (path.suffix.lower() == '.rsr' and file_path.with_suffix('.png').exists()):
 							yield(file_path, rel_root / file)

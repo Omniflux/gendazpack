@@ -46,7 +46,7 @@ def _sku(sku: str) -> int:
 			raise ValueError
 		return int_sku
 	except ValueError:
-		raise ArgumentTypeError(f'Invalid SKU: Must be 1 - 8 digits')
+		raise ArgumentTypeError('Invalid SKU: Must be 1 - 8 digits')
 
 def _id(id: str) -> int:
 	try:
@@ -55,7 +55,7 @@ def _id(id: str) -> int:
 			raise ValueError
 		return int_id
 	except ValueError:
-		raise ArgumentTypeError(f'Invalid ID: Must be 1 - 2 digits')
+		raise ArgumentTypeError('Invalid ID: Must be 1 - 2 digits')
 
 def _readme(file: str) -> Path:
 	readme = Path(file)
