@@ -8,7 +8,7 @@ from http.client import HTTPResponse
 from mimetypes import guess_extension
 from pathlib import Path
 from struct import pack
-from urllib.parse import ParseResult
+from urllib.parse import ParseResult, urlparse
 from uuid import uuid4
 
 from lxml import etree
@@ -88,9 +88,12 @@ class PackageGenerator(PackageData):
 		if isinstance(self.image, Path):
 			extension = self.image.suffix
 		elif isinstance(self.image, HTTPResponse) and self.image:
-			# strict=False because ShareCG specifies incorrect MIME type for JPEG.
-			if ext := guess_extension(self.image.info()['Content-Type'], False):
-				extension = ext
+			if 'Content-Type' in self.image.info():
+				# strict=False because ShareCG specifies incorrect MIME type for JPEG.
+				if ext := guess_extension(self.image.info()['Content-Type'], False):
+					extension = ext
+			else:
+				extension = Path(urlparse(self.image.url).path).suffix
 
 		return extension if extension in ['.jpg', '.png'] else None
 
