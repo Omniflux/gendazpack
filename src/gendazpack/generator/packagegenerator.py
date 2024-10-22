@@ -47,6 +47,7 @@ class Windows1252_ZipInfo(zipfile.ZipInfo):
 	def __init__(self, filename: str = "NoName", date_time: tuple[int, int, int, int, int, int] = (1980,1,1,0,0,0)):
 		super().__init__(filename, date_time)
 
+		# Encode non ASCII filenames as Windows-1252, but also add unicode filename field for non DIM tools to extract
 		if self.filename.encode() != self.filename.encode('Windows-1252', 'replace'):
 			UNICODE_PATH_EXTRA_FIELD_ID = 0x7075
 			encoded_filename = self.filename.encode()
