@@ -38,7 +38,7 @@ def load_metadata(content_location: Path) -> PackageData:
 					aDescription[0].text if (aDescription := a.xpath('Description')) else None,
 					aContentType[0].attrib['VALUE'] if (aContentType := a.xpath('ContentType')) else None,
 					aAudience[0].attrib['VALUE'] if (aAudience := a.xpath('Audience')) else None,
-					[c.attrib['VALUE'] for c in a.xpath('Categories/Category[string-length(@VALUE) > 0]')],
+					{Path(c.attrib['VALUE']) for c in a.xpath('Categories/Category[string-length(@VALUE) > 0]')},
 					[c.attrib['VALUE'] for c in a.xpath('Compatibilities/Compatibility[string-length(@VALUE) > 0]')],
 					aCompatibilityBase[0].attrib['VALUE'] if (aCompatibilityBase := a.xpath('CompatibilityBase')) else None,
 					[t.attrib['VALUE'] for t in a.xpath('Tags/Tag[string-length(@VALUE) > 0]')],

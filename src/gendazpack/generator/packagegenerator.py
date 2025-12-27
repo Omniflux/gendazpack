@@ -32,6 +32,7 @@ _POSER_USER_FACING_DIRECTORIES = ('camera', 'character', 'collections', 'face', 
 _EXCLUDE_FILES = tuple(x.lower() for x in ('.DS_Store', '._.DS_Store', 'InstallManagerFileRegister.json', 'Desktop.ini', 'pspbrwse.jbf', 'Thumbs.db'))
 _EXCLUDE_SUFFIXES = ('.xmp', '.bak')
 
+_SPECIAL_CATEGORIES = ('/Default/Lost and Found', '/Default/Saved Files', '/Default/Scan Results')
 
 # DIM does not support Unicode filenames in ZIP files due to using the minizip 1.01 library.
 # Examining official DAZ packages reveals Windows-1252 encoding is used. Packages with
@@ -186,9 +187,10 @@ class PackageGenerator(PackageData):
 						etree.SubElement(asset, 'Audience', VALUE=asset_data.audience)
 
 					if asset_data.categories and len(asset_data.categories):
-						categories = etree.SubElement(asset, 'Categories')
-						for category in asset_data.categories:
-							etree.SubElement(categories, 'Category', VALUE=category)
+						if (filtered_categories := [f for f in asset_data.categories if not any(f !=c and c.is_relative_to(f) for c in asset_data.categories) and not any(f.is_relative_to(c) for c in _SPECIAL_CATEGORIES)]):
+							categories = etree.SubElement(asset, 'Categories')
+							for category in sorted(filtered_categories):
+								etree.SubElement(categories, 'Category', VALUE=category.as_posix())
 
 					if asset_data.tags and len(asset_data.tags):
 						tags = etree.SubElement(asset, 'Tags')

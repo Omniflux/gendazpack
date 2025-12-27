@@ -8,7 +8,7 @@ class AssetData:
     description: str | None = None
     content_type: str | None = None
     audience: str | None = None
-    categories: list[str] = field(default_factory=list)
+    categories: set[Path] = field(default_factory=set)
     compatibilities: list[str] = field(default_factory=list)
     compatibility_base: str | None = None
     tags: list[str] = field(default_factory=list)
