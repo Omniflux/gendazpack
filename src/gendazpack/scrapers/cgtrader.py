@@ -1,3 +1,5 @@
+import json
+
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from uuid import uuid5, NAMESPACE_URL
@@ -27,16 +29,14 @@ class RenderHub(Scraper):
 		if canonical_url and page_type == 'product':
 			global_id = uuid5(NAMESPACE_URL, canonical_url)
 
-			name = title_element.attrs['content'].removesuffix(' | 3D model') if isinstance(title_element := soup.find('meta', attrs={'property': 'og:title'}), Tag) else None
-			sku = int(sku_element.attrs['content']) if isinstance(sku_element := soup.find('meta', attrs={'itemprop': 'sku'}), Tag) else None
+			name = " ".join(title_element.attrs['content'].removesuffix(' | 3D model').strip().split()) if isinstance(title_element := soup.find('meta', attrs={'property': 'og:title'}), Tag) else None
+			sku = int(info.get_text().lstrip('#')) if (info := soup.select_one('div.details-area__section-info > span:-soup-contains("#")')) else None
 			product_image = urlopen(img_element.attrs['content']) if isinstance(img_element := soup.find('meta', attrs={'property': 'og:image'}), Tag) and img_element.attrs['content'] else None
-			artists = [a.get_text() for a in soup.select('.product-sidebar .product-author .author-info .username')]
+			artists = [artist.get_text()] if (artist := soup.select_one('a.seller-area__header-content-username')) else []
 
-			pubDate_tag = soup.select_one('.product-sidebar .model-details .info-list li:-soup-contains("Publish date") > span')
-			pubdate = pubDate_tag.get_text() if pubDate_tag else None
-
-			description = soup.select_one('#product-main .product-description')
-			product_image_url = img_tag.attrs['src'] if (img_tag := soup.select_one('div.product-carousel__image > img')) else None
+			pubdate = info.get_text() if (info := soup.select_one('span.details-area__section-subtitle:-soup-contains("Publish date") + div.details-area__section-info > span')) else None
+			description = soup.select_one('div.description-area__body-content')
+			product_image_data = json.loads(data.attrs['data-react-props'])['galleryArea']['medias'] if isinstance(data := soup.find('div', attrs={'data-react-class': 'ItemPage/TopSection/TopSection'}), Tag) else None
 
 			html = BeautifulSoup('', 'lxml')
 			stylesheet = CSS(string='@page { margin: 1em; } img { max-width: 100%; }')
@@ -68,18 +68,11 @@ class RenderHub(Scraper):
 			else:
 				description = None
 
-			if product_image_url:
-				product_image = urlopen(product_image_url)
-				img = soup.new_tag('img')  # pyright: ignore[reportUnknownMemberType]
-				img.attrs['src'] = product_image_url
-				html.append(img)
-
-				for image in soup.select('div.product-carousel .thumb-list-wrapper img'):
+			if product_image_data:
+				for media in product_image_data:
 					img = soup.new_tag('img')  # pyright: ignore[reportUnknownMemberType]
-					img.attrs['src'] = image.attrs['data-src']
+					img.attrs['src'] = media['imageName']
 					html.append(img)
-			else:
-				product_image = None
 
 			return PackageData(
 				global_id = global_id,
