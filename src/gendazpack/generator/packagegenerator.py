@@ -345,6 +345,10 @@ if( App.version >= 67109158 ) //4.0.0.294
 				print('Adding Content')
 
 			for file_path, relative_file_path, in self._files():
+				# Skip output file if run from within content directory
+				if Path(self.zip_filename).samefile(file_path):
+					continue
+
 				# Compress DAZ compressable files before adding to archive
 				if file_path.suffix.lower() in _COMPRESSABLE_DAZ_EXTENSIONS and file_path.stat().st_size:
 					with gzip.open(file_path) as f:
