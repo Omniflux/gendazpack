@@ -3,7 +3,11 @@ from re import search, IGNORECASE
 from typing import Any, Self
 from urllib.parse import ParseResult, urlparse
 
+from keyring import get_credential, set_password
+
 from ..generator import PackageData
+
+credential_service_name = 'gendazpack'
 
 class Scraper(ABC):
 	domain: str
@@ -17,7 +21,7 @@ class Scraper(ABC):
 
 	@staticmethod
 	@abstractmethod
-	def scrape(url: ParseResult) -> PackageData:
+	def scrape(url: ParseResult, auth: list[str] | None) -> PackageData:
 		raise NotImplementedError
 
 def get_scraper(url: ParseResult | None) -> type[Scraper] | None:
@@ -30,10 +34,16 @@ def get_scraper(url: ParseResult | None) -> type[Scraper] | None:
 		else:
 			raise ValueError(f'No scraper for site: {url.hostname}')
 
-def scrape(url: ParseResult) -> PackageData:
+def scrape(url: ParseResult, auth: list[str] | None, save_auth: bool) -> PackageData:
 	try:
 		if scraper := get_scraper(url):
-			return scraper.scrape(url)
+			if auth and save_auth:
+				set_password(f"{credential_service_name} - {scraper.domain}", *auth)
+
+			if not auth and (credentials := get_credential(f"{credential_service_name} - {scraper.domain}", None)):
+				auth = [credentials.username, credentials.password]
+
+			return scraper.scrape(url, auth)
 	except ValueError:
 		pass
 

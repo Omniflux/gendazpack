@@ -69,6 +69,7 @@ def _main() -> None:
 	parser.add_argument('content_location', type = _content_location, help = 'Content Directory')
 	parser.add_argument('-g', '--global-id', type = UUID, help = 'Product Global ID')
 	parser.add_argument('-u', '--url', type = _url, help = 'URL for product information')
+	parser.add_argument('-A', '--auth', nargs=2, metavar=('USERNAME', 'PASSWORD'), help = 'Authentication details for URL')
 	parser.add_argument('-p', '--prefix', type = _prefix, help = 'Source Prefix')
 	parser.add_argument('-s', '--sku', type = _sku, help = 'Product SKU')
 	parser.add_argument('-I', '--id', type = _id, default = '0', help = 'Package ID')
@@ -80,8 +81,15 @@ def _main() -> None:
 	parser.add_argument('-i', '--image', type = Path, help = 'Product Image')
 	parser.add_argument('-r', '--readme', type = _readme, help = 'Product ReadMe')
 	parser.add_argument('-v', '--verbose', action = 'store_true', help = 'enable verbose output')
+	parser.add_argument('--save-auth', action = 'store_true', help = 'Save authentication details for URL')
 
 	args = parser.parse_args()
+
+	if (args.auth and args.url is None):
+		parser.error('--auth requires --url.')
+
+	if (args.save_auth and not args.auth):
+		parser.error('--save-auth requires --auth.')
 
 	package_generator = PackageGenerator(
 		global_id=args.global_id,
@@ -96,6 +104,8 @@ def _main() -> None:
 		readme=args.readme,
 		id=args.id,
 		url=args.url,
+		auth=args.auth,
+		save_auth=args.save_auth,
 		content_location=args.content_location,
 		verbose=args.verbose)
 	

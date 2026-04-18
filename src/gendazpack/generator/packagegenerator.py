@@ -59,6 +59,8 @@ class Windows1252_ZipInfo(zipfile.ZipInfo):
 class PackageGenerator(PackageData):
 	id: int | None = None
 	url: ParseResult | None = None
+	auth: list[str] | None = None
+	save_auth: bool = False
 	verbose: bool = False
 	_: KW_ONLY
 	content_location: Path
@@ -256,7 +258,7 @@ if( App.version >= 67109158 ) //4.0.0.294
 		self._merge_package_data(load_metadata(self.content_location))
 
 		if self.url:
-			self._merge_package_data(scrape(self.url))
+			self._merge_package_data(scrape(self.url, self.auth, self.save_auth))
 
 		if not self.global_id:
 			self.global_id = uuid4()

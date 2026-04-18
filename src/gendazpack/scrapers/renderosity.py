@@ -14,7 +14,7 @@ class Renderosity(Scraper):
 	domain = 'renderosity.com'
 
 	@staticmethod
-	def scrape(url: ParseResult) -> PackageData:
+	def scrape(url: ParseResult, auth: list[str] | None) -> PackageData:
 		_STORE_NAME = 'Renderosity'
 		_STORE_PREFIX = 'ROSITY'
 

@@ -14,7 +14,7 @@ class RenderHub(Scraper):
 	domain = 'cgtrader.com'
 
 	@staticmethod
-	def scrape(url: ParseResult) -> PackageData:
+	def scrape(url: ParseResult, auth: list[str] | None) -> PackageData:
 		_STORE_NAME = 'CGTrader'
 		_STORE_PREFIX = 'CGTRADR'
 

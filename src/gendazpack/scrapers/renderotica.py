@@ -13,7 +13,7 @@ class Renderotica(Scraper):
 	domain = 'renderotica.com'
 
 	@staticmethod
-	def scrape(url: ParseResult) -> PackageData:
+	def scrape(url: ParseResult, auth: list[str] | None) -> PackageData:
 		_STORE_NAME = 'Renderotica'
 		_STORE_PREFIX = 'ROTICA'
 

@@ -49,7 +49,7 @@ class ShareCG(Scraper):
 		return result
 
 	@staticmethod
-	def scrape(url: ParseResult) -> PackageData:
+	def scrape(url: ParseResult, auth: list[str] | None) -> PackageData:
 		_STORE_NAME = 'ShareCG'
 		_STORE_PREFIX = 'SHARECG'
 

@@ -16,7 +16,7 @@ class RenderHub(Scraper):
 	domain = 'renderhub.com'
 
 	@staticmethod
-	def scrape(url: ParseResult) -> PackageData:
+	def scrape(url: ParseResult, auth: list[str] | None) -> PackageData:
 		_STORE_NAME = 'RenderHub'
 		_STORE_PREFIX = 'RNDRHUB'
 

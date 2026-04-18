@@ -14,7 +14,7 @@ class DeviantArt(Scraper):
 	domain = 'deviantart.com'
 
 	@staticmethod
-	def scrape(url: ParseResult) -> PackageData:
+	def scrape(url: ParseResult, auth: list[str] | None) -> PackageData:
 		_STORE_NAME = 'DeviantArt'
 		_STORE_PREFIX = 'DVNT'
 
