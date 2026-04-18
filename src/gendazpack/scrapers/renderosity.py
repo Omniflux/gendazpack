@@ -1,7 +1,7 @@
 from re import search
 from typing import cast
-from urllib.parse import ParseResult, quote_plus, urlparse
-from urllib.request import urlopen
+from urllib.parse import ParseResult, quote_plus, urlencode, urlparse
+from urllib.request import build_opener, install_opener, urlopen, HTTPCookieProcessor
 from uuid import uuid5, NAMESPACE_URL
 
 from bs4 import BeautifulSoup, Tag
@@ -20,6 +20,18 @@ class Renderosity(Scraper):
 
 		_FREE_NAME = 'Renderosity Free'
 		_FREE_PREFIX = 'ROSITYF'
+
+		if auth:
+			_LOGIN_URL = f'{ url.scheme }://{ url.netloc }/login'
+
+			install_opener(build_opener(HTTPCookieProcessor()))
+			request = urlopen(_LOGIN_URL)
+			login_token = input_tag.attrs['value'] if isinstance(input_tag := BeautifulSoup(request.read(), 'lxml').find('input', attrs={'name': '_token'}), Tag) else None
+			post_data = urlencode({'_token': login_token, 'redirect_url': '', 'username': auth[0], 'password': auth[1]}).encode('ascii')
+			request = urlopen(_LOGIN_URL, post_data)
+
+			if (request.geturl() == _LOGIN_URL):
+				raise RuntimeError('Authentication failed')
 
 		request = urlopen(url.geturl())
 		actual_url = urlparse(str(request.url))
@@ -85,6 +97,8 @@ class Renderosity(Scraper):
 							sidebar.decompose()
 						if departments := product_html.select_one('div.rr-mkt-product-departments'):
 							departments.decompose()
+						if recently_viewed := product_html.select_one('section.rr-mkt-recently-viewed'):
+							recently_viewed.decompose()
 
 						if info_wrapper := product_html.select_one('div.rr-mkt-product-additional_info-wrapper'):
 							for element in info_wrapper.find_next_siblings():
